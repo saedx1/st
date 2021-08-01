@@ -7,7 +7,7 @@
  */
 static char *font = "Jetbrains Mono:pixelsize=16:antialias=true:autohint=true";
 
-static int borderpx = 2;
+static int borderpx = 0;
 
 /*
  * What program is execed by st depends of these precedence rules:
@@ -97,14 +97,14 @@ unsigned int tabspaces = 8;
 /* Terminal colors (16 first used in escape sequence) */
 static const char *colorname[] = {
 	/* 8 normal colors */
-	"black",
+	"#2c3e50",
 	"red3",
 	"green3",
 	"yellow3",
 	"blue2",
 	"magenta3",
 	"cyan3",
-	"gray90",
+	"#1abc9c",
 
 	/* 8 bright colors */
 	"gray50",
@@ -139,7 +139,7 @@ static unsigned int defaultrcs = 257;
  * 6: Bar ("|")
  * 7: Snowman ("☃")
  */
-static unsigned int cursorshape = 7;
+static unsigned int cursorshape = 6;
 
 /*
  * Default columns and rows numbers
