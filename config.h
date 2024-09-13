@@ -163,10 +163,16 @@ static const ColorScheme schemes[] = {
 	  "#928374", "#9d0006", "#79740e", "#b57614",
 	  "#076678", "#8f3f71", "#427b58", "#3c3836",
 	  [256]="#3c3836", "#555555"}, 15, 0, 256, 257},
+
+	{{"#282936", "#ea51b2", "#ebff87", "#00f769",
+	  "#62d6e8", "#b45bcf", "#a1efe4", "#e9e9f4",
+	  "#626483", "#b45bcf", "#3a3c4e", "#4d4f68",
+	  "#62d6e8", "#f1f2f8", "#00f769", "#f7f7fb",
+	  [256]="#f7f7fb", "#555555"}, 7, 0, 256,257 }
 };
 
 static const char * const * colorname;
-int colorscheme = 4;
+int colorscheme = 8;
 
 /*
  * Default colors (colorname index)
