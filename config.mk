@@ -9,13 +9,16 @@ MANPREFIX = $(PREFIX)/share/man
 
 X11INC = /usr/X11R6/include
 X11LIB = /usr/X11R6/lib
+FT2LIB = /usr/include/freetype2
 
 PKG_CONFIG = pkg-config
 
 # includes and libs
 INCS = -I$(X11INC) \
+       -I$(FT2LIB) \
        `$(PKG_CONFIG) --cflags fontconfig` \
        `$(PKG_CONFIG) --cflags freetype2`
+
 LIBS = -L$(X11LIB) -lm -lrt -lX11 -lutil -lXft \
        `$(PKG_CONFIG) --libs fontconfig` \
        `$(PKG_CONFIG) --libs freetype2`
