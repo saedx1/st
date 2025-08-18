@@ -1661,6 +1661,9 @@ xdrawline(Line line, int x1, int y1, int x2)
 void
 xfinishdraw(void)
 {
+	if (search.mode == SEARCH_ON)
+		xdrawsearch();
+		
 	XCopyArea(xw.dpy, xw.buf, xw.win, dc.gc, 0, 0, win.w,
 			win.h, 0, 0);
 	XSetForeground(xw.dpy, dc.gc,
@@ -1841,7 +1844,11 @@ kpress(XEvent *ev)
 	if (ev->type == KeyRelease)
 		return;
 
-	/* 1. shortcuts */
+	/* 1. search input handling */
+	if (search_input(ksym, buf, len))
+		return;
+
+	/* 2. shortcuts */
 	for (bp = shortcuts; bp < shortcuts + LEN(shortcuts); bp++) {
 		if (ksym == bp->keysym && match(bp->mod, e->state)) {
 			bp->func(&(bp->arg));
@@ -1849,13 +1856,13 @@ kpress(XEvent *ev)
 		}
 	}
 
-	/* 2. custom keys from config.h */
+	/* 3. custom keys from config.h */
 	if ((customkey = kmap(ksym, e->state))) {
 		ttywrite(customkey, strlen(customkey), 1);
 		return;
 	}
 
-	/* 3. composed string from input method */
+	/* 4. composed string from input method */
 	if (len == 0)
 		return;
 	if (len == 1 && e->state & Mod1Mask) {
@@ -2133,5 +2140,83 @@ run:
 	selinit();
 	run();
 
+	return 0;
+}
+
+void
+xdrawsearch(void)
+{
+	int x, y, width, height;
+	char searchtext[256];
+	
+	/* Calculate search bar position */
+	x = 0;
+	y = win.h - win.ch;
+	width = win.w;
+	height = win.ch;
+	
+	/* Clear search bar area */
+	XSetForeground(xw.dpy, dc.gc, dc.col[defaultbg].pixel);
+	XFillRectangle(xw.dpy, xw.buf, dc.gc, x, y, width, height);
+	
+	/* Draw search bar border */
+	XSetForeground(xw.dpy, dc.gc, dc.col[defaultfg].pixel);
+	XDrawRectangle(xw.dpy, xw.buf, dc.gc, x, y, width - 1, height - 1);
+	
+	/* Prepare search text */
+	snprintf(searchtext, sizeof(searchtext), "Search%s%s: %s", 
+		search.case_sensitive ? " [Case]" : "",
+		search.regex_mode ? " [Regex]" : "",
+		search.pattern ? search.pattern : "");
+	
+	/* Draw search text */
+	XftDrawStringUtf8(xw.draw, &dc.col[defaultfg], dc.font.match,
+		x + borderpx, y + dc.font.ascent,
+		(FcChar8 *)searchtext, strlen(searchtext));
+}
+
+int
+search_input(KeySym ksym, char *buf, int len)
+{
+	if (search.mode != SEARCH_ON)
+		return 0;
+		
+	switch (ksym) {
+	case XK_Escape:
+		search_exit(NULL);
+		return 1;
+	case XK_Return:
+		search_next(NULL);
+		return 1;
+	case XK_BackSpace:
+		if (search.pattern && search.len > 0) {
+			search.len--;
+			search.pattern[search.len] = '\0';
+			search_clear_highlight();
+			if (search.len > 0)
+				search_highlight();
+			tfulldirt();
+			draw();
+		}
+		return 1;
+	default:
+		if (len > 0 && buf[0] >= 32 && buf[0] < 127) {
+			if (!search.pattern) {
+				search.pattern = malloc(256);
+				search.len = 0;
+			}
+			if (search.len < 255) {
+				search.pattern[search.len] = buf[0];
+				search.len++;
+				search.pattern[search.len] = '\0';
+				search_clear_highlight();
+				search_highlight();
+				tfulldirt();
+				draw();
+			}
+			return 1;
+		}
+	}
+	
 	return 0;
 }

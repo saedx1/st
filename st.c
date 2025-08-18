@@ -200,7 +200,7 @@ static void tsetscroll(int, int);
 static void tswapscreen(void);
 static void tsetmode(int, int, const int *, int);
 static int twrite(const char *, int, int);
-static void tfulldirt(void);
+void tfulldirt(void);
 static void tcontrolcode(uchar );
 static void tdectest(char );
 static void tdefutf8(char);
@@ -227,6 +227,7 @@ static ssize_t xwrite(int, const char *, size_t);
 /* Globals */
 static Term term;
 static Selection sel;
+Search search;
 static CSIEscape csiescseq;
 static STREscape strescseq;
 static int iofd = 1;
@@ -1146,6 +1147,7 @@ tnew(int col, int row)
 	term = (Term){ .c = { .attr = { .fg = defaultfg, .bg = defaultbg } } };
 	tresize(col, row);
 	treset();
+	search_init();
 }
 
 void
@@ -2784,6 +2786,194 @@ draw(void)
 void
 redraw(void)
 {
+	tfulldirt();
+	draw();
+}
+
+void
+search_init(void)
+{
+	search.pattern = NULL;
+	search.len = 0;
+	search.pos = 0;
+	search.direction = 1;
+	search.mode = SEARCH_OFF;
+	search.case_sensitive = 0;
+	search.regex_mode = 0;
+}
+
+void
+search_cleanup(void)
+{
+	if (search.pattern) {
+		free(search.pattern);
+		search.pattern = NULL;
+	}
+	search.len = 0;
+	search.pos = 0;
+	search.mode = SEARCH_OFF;
+}
+
+void
+search_start(const Arg *arg)
+{
+	if (search.mode == SEARCH_ON) {
+		search_exit(arg);
+		return;
+	}
+	
+	search.mode = SEARCH_ON;
+	search.direction = 1;
+	search.pos = 0;
+	
+	if (search.pattern) {
+		free(search.pattern);
+		search.pattern = NULL;
+		search.len = 0;
+	}
+	
+	tfulldirt();
+	draw();
+}
+
+void
+search_exit(const Arg *arg)
+{
+	search_clear_highlight();
+	search.mode = SEARCH_OFF;
+	tfulldirt();
+	draw();
+}
+
+int
+search_match(int x, int y, int *match_start, int *match_end)
+{
+	if (!search.pattern || search.len == 0)
+		return 0;
+		
+	Line line = TLINE(y);
+	int col;
+	char linestr[term.col + 1];
+	char *match_pos;
+	
+	for (col = 0; col < term.col && line[col].u != 0; col++) {
+		if (line[col].u < 127)
+			linestr[col] = line[col].u;
+		else
+			linestr[col] = '?';
+	}
+	linestr[col] = '\0';
+	
+	if (search.case_sensitive)
+		match_pos = strstr(linestr, search.pattern);
+	else {
+		char *lower_line = malloc(strlen(linestr) + 1);
+		char *lower_pattern = malloc(search.len + 1);
+		
+		for (int i = 0; linestr[i]; i++)
+			lower_line[i] = tolower(linestr[i]);
+		lower_line[strlen(linestr)] = '\0';
+		
+		for (int i = 0; search.pattern[i]; i++)
+			lower_pattern[i] = tolower(search.pattern[i]);
+		lower_pattern[search.len] = '\0';
+		
+		match_pos = strstr(lower_line, lower_pattern);
+		if (match_pos)
+			match_pos = linestr + (match_pos - lower_line);
+			
+		free(lower_line);
+		free(lower_pattern);
+	}
+	
+	if (match_pos) {
+		*match_start = match_pos - linestr;
+		*match_end = *match_start + search.len - 1;
+		return 1;
+	}
+	
+	return 0;
+}
+
+void
+search_highlight(void)
+{
+	int y, match_start, match_end;
+	
+	if (search.mode != SEARCH_ON || !search.pattern)
+		return;
+		
+	for (y = 0; y < term.row + term.scr; y++) {
+		if (search_match(0, y, &match_start, &match_end)) {
+			Line line = TLINE(y);
+			for (int x = match_start; x <= match_end && x < term.col; x++) {
+				line[x].mode |= ATTR_REVERSE;
+			}
+		}
+	}
+}
+
+void
+search_clear_highlight(void)
+{
+	int x, y;
+	
+	for (y = 0; y < term.row + term.scr; y++) {
+		Line line = TLINE(y);
+		for (x = 0; x < term.col; x++) {
+			line[x].mode &= ~ATTR_REVERSE;
+		}
+	}
+}
+
+void
+search_next(const Arg *arg)
+{
+	if (search.mode != SEARCH_ON || !search.pattern)
+		return;
+		
+	search.direction = 1;
+	search_clear_highlight();
+	search_highlight();
+	tfulldirt();
+	draw();
+}
+
+void
+search_prev(const Arg *arg)
+{
+	if (search.mode != SEARCH_ON || !search.pattern)
+		return;
+		
+	search.direction = -1;
+	search_clear_highlight();
+	search_highlight();
+	tfulldirt();
+	draw();
+}
+
+void
+search_toggle_case(const Arg *arg)
+{
+	if (search.mode != SEARCH_ON)
+		return;
+		
+	search.case_sensitive = !search.case_sensitive;
+	search_clear_highlight();
+	search_highlight();
+	tfulldirt();
+	draw();
+}
+
+void
+search_toggle_regex(const Arg *arg)
+{
+	if (search.mode != SEARCH_ON)
+		return;
+		
+	search.regex_mode = !search.regex_mode;
+	search_clear_highlight();
+	search_highlight();
 	tfulldirt();
 	draw();
 }

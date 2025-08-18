@@ -53,6 +53,21 @@ enum selection_snap {
 	SNAP_LINE = 2
 };
 
+enum search_mode {
+	SEARCH_OFF = 0,
+	SEARCH_ON = 1
+};
+
+typedef struct {
+	char *pattern;
+	int len;
+	int pos;
+	int direction;
+	int mode;
+	int case_sensitive;
+	int regex_mode;
+} Search;
+
 typedef unsigned char uchar;
 typedef unsigned int uint;
 typedef unsigned long ulong;
@@ -81,6 +96,7 @@ typedef union {
 void die(const char *, ...);
 void redraw(void);
 void draw(void);
+void tfulldirt(void);
 
 void kscrolldown(const Arg *);
 void kscrollup(const Arg *);
@@ -114,6 +130,19 @@ void highlighturls(void);
 void unhighlighturls(void);
 void followurl(int, int);
 
+void search_init(void);
+void search_cleanup(void);
+void search_start(const Arg *);
+void search_next(const Arg *);
+void search_prev(const Arg *);
+void search_toggle_case(const Arg *);
+void search_toggle_regex(const Arg *);
+void search_exit(const Arg *);
+int search_match(int, int, int *, int *);
+void search_highlight(void);
+void search_clear_highlight(void);
+int search_input(unsigned long, char *, int);
+
 size_t utf8encode(Rune, char *);
 
 void *xmalloc(size_t);
@@ -121,6 +150,7 @@ void *xrealloc(void *, size_t);
 char *xstrdup(const char *);
 
 /* config.h globals */
+extern Search search;
 extern char *utmp;
 extern char *scroll;
 extern char *stty_args;

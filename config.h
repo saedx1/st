@@ -256,6 +256,9 @@ static Shortcut shortcuts[] = {
 	{0, XK_Page_Down, kscrolldown, {.i = -1}},
 	{ MODKEY,               XK_0,           nextscheme,     {.i = +1} },
 	{ MODKEY|ControlMask,   XK_0,           nextscheme,     {.i = -1} },
+	{TERMMOD, XK_F, search_start, {.i = 0}},
+	{TERMMOD, XK_G, search_next, {.i = 0}},
+	{TERMMOD|ShiftMask, XK_G, search_prev, {.i = 0}},
 };
 
 /*
