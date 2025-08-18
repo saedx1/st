@@ -527,3 +527,10 @@ static char ascii_printable[] =
 	" !\"#$%&'()*+,-./0123456789:;<=>?"
 	"@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_"
 	"`abcdefghijklmnopqrstuvwxyz{|}~";
+
+char* urlhandler = "xdg-open";
+char urlchars[] =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "abcdefghijklmnopqrstuvwxyz"
+      "0123456789-._~:/?#@!$&'*+,;=%";
+char* urlprefixes[] = {"http://", "https://", NULL};
