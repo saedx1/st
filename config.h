@@ -7,7 +7,7 @@
  */
 static char *font = "Jetbrains Mono:pixelsize=16:antialias=true:autohint=true";
 
-static int borderpx = 0;
+static int borderpx = 18;
 
 /*
  * What program is execed by st depends of these precedence rules:
@@ -28,7 +28,7 @@ char *vtiden = "\033[?6c";
 
 /* Kerning / character bounding-box multipliers */
 static float cwscale = 1.0;
-static float chscale = 1.0;
+static float chscale = 1.06;
 
 /*
  * word delimiter string
@@ -46,7 +46,7 @@ int allowaltscreen = 1;
 
 /* allow certain non-interactive (insecure) window operations such as:
    setting the clipboard text */
-int allowwindowops = 0;
+int allowwindowops = 1;
 
 /*
  * draw latency range in ms - from new content/keypress/etc until drawing.
@@ -61,7 +61,7 @@ static double maxlatency = 33;
  * blinking timeout (set to 0 to disable blinking) for the terminal blinking
  * attribute.
  */
-static unsigned int blinktimeout = 800;
+static unsigned int blinktimeout = 0;
 
 /*
  * thickness of underline and bar cursors
@@ -92,7 +92,7 @@ char *termname = "st-256color";
  *
  *	stty tabs
  */
-unsigned int tabspaces = 8;
+unsigned int tabspaces = 4;
 
 typedef struct {
 	const char* const colors[258]; /* terminal colors */
@@ -172,7 +172,7 @@ static const ColorScheme schemes[] = {
 };
 
 static const char * const * colorname;
-int colorscheme = 8;
+int colorscheme = 0;
 
 /*
  * Default colors (colorname index)
@@ -196,8 +196,8 @@ static unsigned int cursorshape = 6;
  * Default columns and rows numbers
  */
 
-static unsigned int cols = 80;
-static unsigned int rows = 24;
+static unsigned int cols = 110;
+static unsigned int rows = 30;
 
 /*
  * Default colour and shape of the mouse cursor
